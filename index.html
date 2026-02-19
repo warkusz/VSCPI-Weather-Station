@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burgas Weather Station</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            background: linear-gradient(rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.03)), 
+                        url('img/Background.png'), #1a2a6c; 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            overflow: hidden;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Exo 2', sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            /* COMPACT SIZE */
+            max-width: 1000px; 
+            padding: 30px; 
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(2px) saturate(110%);
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .header {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
+            border-bottom: 1.5px solid;
+            border-image-source: linear-gradient(to right, 
+                transparent 0%, 
+                rgb(255, 255, 255) 50%, 
+                transparent 100%
+            );
+            border-image-slice: 1
+        }
+
+        h1 { 
+            grid-column: 2;
+            margin: 0; 
+            font-weight: 700; 
+            letter-spacing: 2px;
+            text-align: center;
+            font-size: 1.8rem;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+        }
+
+        .update-time { 
+            grid-column: 3;
+            font-size: 0.8rem; 
+            opacity: 0.7; 
+            font-style: italic;
+            text-align: right;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            justify-items: center; 
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05); 
+            padding: 20px;
+            border-radius: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.4);
+            border-left: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.1), 0 15px 30px rgba(0, 0, 0, 0.2);
+            width: 88%;
+            transition: all 0.4s ease;
+            display: flex;
+            align-items: center; 
+            justify-content: center;
+            gap: 15px;
+            min-height: 90px;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .card-icon img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            filter: drop-shadow(0 1px 4px rgba(0,80,180,0.3));
+        }
+        .card-icon-h img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            filter: drop-shadow(0 1px 4px rgba(0,80,180,0.3));
+        }
+
+        .content-area {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex-grow: 1;
+        }
+
+        .label { 
+            font-size: 1.5rem; 
+            font-weight: 600; 
+            margin-bottom: 4px; 
+            opacity: 0.9;
+            border-bottom: 1.5px solid rgba(255, 255, 255, 0.4);
+            padding-bottom: 3px;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+            border-bottom: 1.2px solid;
+            border-image-source: linear-gradient(to right, rgba(255, 255, 255, 0.814) 0%, rgba(255,255,255,0) 90%);
+            border-image-slice: 1;
+        }
+
+        .value-wrapper { 
+            display: flex; 
+            align-items: baseline; 
+            gap: 4px; 
+        }
+
+        .value { 
+            font-size: 1.8rem; 
+            font-weight: 600; 
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .unit { 
+            font-size: 1.5rem; 
+            font-weight: 500;
+            color: #81ecec; 
+            text-shadow: 0 0 5px rgba(129, 236, 236, 0.3);
+        }
+
+        .last-row-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 850px) {
+            .dashboard-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 600px) {
+            .header { display: flex; flex-direction: column; gap: 10px; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .last-row-container { flex-direction: column; align-items: center; }
+            .card { width: 90%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="update-time">Last Update: <?= date('H:i'); ?></div>
+        <h1>Burgas Weather</h1>
+        <div></div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-icon"><img src="img/temp.png" alt="Temperature"></div>
+            <div class="content-area">
+                <div class="label">Temperature</div>
+                <div class="value-wrapper">
+                    <span class="value">23.3</span><span class="unit">°C</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-icon-h"><img src="img/drop.png" alt="Humidity"></div>
+            <div class="content-area">
+                <div class="label">Humidity</div>
+                <div class="value-wrapper">
+                    <span class="value">50</span><span class="unit">%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-icon-h"><img src="img/pressure.png" alt="Pressure"></div>
+            <div class="content-area">
+                <div class="label">Pressure</div>
+                <div class="value-wrapper">
+                    <span class="value">983.0</span><span class="unit">mbar</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-icon"><img src="img/speed.png" alt="WSpeed"></div>
+            <div class="content-area">
+                <div class="label">Wind Speed</div>
+                <div class="value-wrapper">
+                    <span class="value">0.0</span><span class="unit">km/h</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-icon"><img src="img/dir.png" alt="winddir"></div>            
+            <div class="content-area">
+                <div class="label">Wind Direction</div>
+                <div class="value-wrapper">
+                    <span class="value">90º</span><span class="unit">E</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-icon"><img src="img/gust.png" alt="windgust"></div>
+            <div class="content-area">
+                <div class="label">Wind Gust</div>
+                <div class="value-wrapper">
+                    <span class="value">2.2</span><span class="unit">m/s</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="last-row-container">
+        <div class="card" style="max-width: 250px;">
+            <div class="card-icon"><img src="img/drop.png" alt="rain1h"></div>
+            <div class="content-area">
+                <div class="label">Rain (1h)</div>
+                <div class="value-wrapper">
+                    <span class="value">206.2</span><span class="unit">mm</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" style="max-width: 250px;">
+            <div class="card-icon"><img src="img/drop.png" alt="rain24h"></div>
+            <div class="content-area">
+                <div class="label">Rain (24h)</div>
+                <div class="value-wrapper">
+                    <span class="value">206.2</span><span class="unit">mm</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
