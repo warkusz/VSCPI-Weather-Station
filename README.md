@@ -137,9 +137,9 @@ The weather station sensor communicates via a proprietary APRS-style binary-enco
 
 This weather station project was conducted as part of an **Erasmus+ school exchange**, where students from Portugal visited VSCPI in Burgas, Bulgaria. The collaboration allowed each pair of students to contribute skills from their own national curriculum while learning from one another.
 
-### ПГКПИ "Проф. д-р Асен Златаров" - Burgas, Bulgaria (VSCPI)
+### ПГКПИ "Професионална Гимназия по Компютърно Програмиране и Иновации" - Burgas, Bulgaria (VSCPI)
 
-VSCPI (Професионална Гимназия по Компютърно Програмиране и Иновации - Professional High School of Computer Programming and Innovations) is a technical secondary school in Burgas, Bulgaria, located on the Black Sea coast. The school specialises in:
+VSCPI (Професионална Гимназия по Компютърно Програмиране и Иновации - Vocational School for Computer Programming and Innovation) is a technical secondary school in Burgas, Bulgaria, located on the Black Sea coast. The school specialises in:
 
 - **Software Development** - Python, C++, JavaScript, algorithms
 - **Computer Systems** - networking, operating systems, embedded hardware
