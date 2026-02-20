@@ -29,6 +29,37 @@
 
 ---
 
+<div align="center">
+
+### Screenshots
+
+<table border="0" cellpadding="8" cellspacing="0">
+  <tr>
+    <th align="center" width="50%">Web Dashboard</th>
+    <th align="center" width="50%">iOS Mobile App</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/web-dash.png" width="480" alt="Web - Live Dashboard"/><br/><sub>Live Dashboard</sub></td>
+    <td align="center"><img src="assets/mobile-dash.png" width="220" alt="iOS - Live Dashboard"/><br/><sub>Live Dashboard</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/web-history.png" width="480" alt="Web - History"/><br/><sub>History</sub></td>
+    <td align="center"><img src="assets/mobile-history.png" width="220" alt="iOS - History"/><br/><sub>History</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/web_map.png" width="480" alt="Web - Map"/><br/><sub>Map</sub></td>
+    <td align="center"><img src="assets/mobile-map.png" width="220" alt="iOS - Map"/><br/><sub>Map</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/web-info.png" width="480" alt="Web - Info"/><br/><sub>Info</sub></td>
+    <td align="center"><img src="assets/mobile-info.png" width="220" alt="iOS - Info"/><br/><sub>Info</sub></td>
+  </tr>
+</table>
+
+</div>
+
+---
+
 ## Table of Contents
 
 1. [Project Overview](#1-project-overview)
@@ -65,13 +96,17 @@
    - 8.7 [Authentication & Admin Panel](#87-authentication--admin-panel)
    - 8.8 [External APIs](#88-external-apis)
    - 8.9 [CSS / Glassmorphism Design System](#89-css--glassmorphism-design-system)
-9. [Data Flow - End to End](#9-data-flow--end-to-end)
-10. [Setup & Running the Project](#10-setup--running-the-project)
+9. [iOS Mobile App](#9-ios-mobile-app)
+   - 9.1 [Overview & Tech Stack](#91-overview--tech-stack)
+   - 9.2 [App Structure](#92-app-structure)
+   - 9.3 [How It Connects to the Server](#93-how-it-connects-to-the-server)
+10. [Data Flow - End to End](#10-data-flow--end-to-end)
+11. [Setup & Running the Project](#11-setup--running-the-project)
     - 10.1 [Hardware Assembly](#101-hardware-assembly)
     - 10.2 [Firmware Setup (PlatformIO)](#102-firmware-setup-platformio)
     - 10.3 [Dashboard Setup (Next.js)](#103-dashboard-setup-nextjs)
-    - 10.4 [Environment Variables](#104-environment-variables)
-11. [Troubleshooting](#11-troubleshooting)
+    - 11.4 [Environment Variables](#114-environment-variables)
+12. [Troubleshooting](#12-troubleshooting)
 
 ---
 
@@ -88,6 +123,7 @@ The **VSCPI Weather Station** is a complete, end-to-end atmospheric monitoring s
 | **Database** | MySQL 8 + Prisma ORM | Persistent storage of every reading, admin config |
 | **Frontend Dashboard** | React 19 + TypeScript | Live display, 7-day forecast, history charts, map |
 | **Authentication** | NextAuth v5 + bcrypt | Admin panel with JWT sessions |
+| **iOS Mobile App** | SwiftUI (iOS 26) | Native iPhone app - live data, history charts, map, info |
 
 The weather station sensor communicates via a proprietary APRS-style binary-encoded ASCII serial protocol. The custom firmware we wrote **parses this protocol in real time on the ESP32-S3**, converting raw integer fields into properly-scaled physical units (Celsius, m/s, mm of rain, mbar) and forwarding them over USB-CDC serial to the host computer. The Next.js server then reads the USB serial port, re-parses the data in TypeScript, saves it to MySQL, and pushes it to every connected browser using **Server-Sent Events (SSE)** - giving a live-updating dashboard with zero polling latency.
 
@@ -1426,7 +1462,70 @@ The **SVG Liquid Glass filter** in `layout.tsx` uses an SVG `feTurbulence + feDi
 
 ---
 
-## 9. Data Flow - End to End
+## 9. iOS Mobile App
+
+### 9.1 Overview & Tech Stack
+
+In addition to the web dashboard, a native **iOS 26 SwiftUI** app was built that connects to the same Next.js backend and displays live weather data on iPhone. The app mirrors the web dashboard's design language - dark navy background, glassmorphism cards, EU metric units (km/h, °C, mbar) - and adds native mobile features like the iOS 26 floating Liquid Glass tab bar and SF Symbol animations.
+
+| Technology | Role |
+|-----------|------|
+| **SwiftUI (iOS 26)** | Declarative UI framework |
+| **`@Observable` macro** | Reactive state management (replaces ObservableObject) |
+| **URLSession AsyncBytes** | Byte-by-byte SSE streaming (avoids Turbopack buffering stall) |
+| **Swift Charts** | History line + area charts |
+| **MapKit** | Satellite map with realistic 3D elevation |
+| **Open-Meteo API** | 7-day forecast (same as web app) |
+
+### 9.2 App Structure
+
+```
+vscpi-weather-mobile/
+├── Models/
+│   ├── WeatherData.swift        — APRS field struct + EU unit conversions
+│   ├── ForecastDay.swift        — Open-Meteo daily forecast + WMO → SF Symbol map
+│   └── HistoryReading.swift     — /api/readings Codable struct (handles Prisma Decimal strings)
+├── Services/
+│   ├── SSEClient.swift          — URLSession byte-by-byte SSE parser, auto-reconnect
+│   ├── ForecastService.swift    — Open-Meteo + BigDataCloud reverse geocode
+│   └── HistoryService.swift     — GET /api/readings with custom ISO8601 date decoder
+├── ViewModels/
+│   └── WeatherViewModel.swift   — @Observable, throttled UI updates (1/min)
+├── Views/
+│   ├── Live/LiveView.swift      — Hero temp, metrics grid, wind compass, trend sparkline
+│   ├── History/HistoryView.swift— Swift Charts area+line chart, metric selector, data table
+│   ├── Map/StationMapView.swift — Satellite MapKit view with live wind overlay
+│   ├── Info/InfoView.swift      — Team, schools, sensor specs, connection status
+│   └── Components/
+│       ├── LiveBadgeView.swift  — Pulsing LIVE/OFFLINE capsule indicator
+│       ├── WindCompassView.swift— Canvas-drawn compass with animated needle
+│       ├── MetricCard.swift     — Reusable glassmorphism metric card
+│       └── ForecastStripView.swift — Horizontal 7-day forecast strip
+└── Theme.swift                  — Color palette + glassCard() ViewModifier
+```
+
+**4 tabs:**
+- **Live** - real-time temperature, humidity, pressure, wind speed/gust, rain, compass, trend sparkline, 7-day forecast
+- **History** - Swift Charts line chart with metric selector (Temp / Humidity / Wind / Pressure / Rain) + scrollable data table
+- **Map** - satellite MapKit view centred on VSCPI Burgas with live wind speed and direction overlay
+- **Info** - development team, partner schools, sensor specifications, live connection status
+
+### 9.3 How It Connects to the Server
+
+The app connects to the same Next.js server as the browser. For the iOS Simulator, the base URL is `http://localhost:3000`. For a physical iPhone, change `SSEClient.baseURL` to the Mac's LAN IP (e.g. `http://192.168.1.3:3000`).
+
+**SSE streaming fix - byte-by-byte reading:**
+Next.js Turbopack's development server buffers streaming responses, causing Swift's `AsyncLineSequence` to stall indefinitely (bytes arrive but lines never emit). The fix is to read `asyncBytes` one byte at a time and build lines manually - this bypasses the buffering entirely. `Accept-Encoding: identity` is also set to prevent gzip compression from introducing additional buffering.
+
+**Prisma Decimal fix:**
+The `/api/readings` endpoint returns Prisma `Decimal` fields as JSON strings (`"24.1"` not `24.1`). `HistoryReading` uses a custom `init(from:)` that tries `Double` first, then falls back to `String → Double` conversion.
+
+**UI throttling:**
+The ESP32 sends a reading every 5 seconds. Re-rendering the full SwiftUI view tree with spring animations 12 times per minute caused lag. The ViewModel throttles UI updates to once per minute (`updateInterval = 60s`) while keeping the SSE connection alive continuously so the LIVE badge stays green.
+
+---
+
+## 10. Data Flow - End to End
 
 ![Data Flow](diagrams/data_flow.png)
 
